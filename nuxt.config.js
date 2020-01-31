@@ -4,7 +4,7 @@ export default {
   ** Headers of the page
   */
 	head: {
-		title: process.env.npm_package_name || '',
+		title: process.env.npm_package_name || 'L4US - Its Not a Badge, Its Family Crest',
 		meta: [
 			{ charset: 'utf-8' },
 			{ name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -15,7 +15,8 @@ export default {
 	/*
   ** Customize the progress-bar color
   */
-	loading: { color: '#fff' },
+	loading: { color: '#fff', height: '4px' },
+	loadingIndicator: { name: 'circle', color: '#fa923f' },
 	/*
   ** Global CSS
   */
@@ -23,7 +24,7 @@ export default {
 	/*
   ** Plugins to load before mounting the App
   */
-	plugins: [],
+	plugins: [ '~plugins/core-components.js' ],
 	/*
   ** Nuxt.js dev-modules
   */
@@ -40,5 +41,15 @@ export default {
     ** You can extend webpack config here
     */
 		extend(config, ctx) {}
+	},
+	env: {
+		baseUrl: process.env.BASE_URL || 'https://l4us-8a0d4.firebaseio.com'
+	},
+	router: {
+		linkActiveClass: 'active'
+	},
+	transition: {
+		name: 'fade',
+		mode: 'out-in'
 	}
 };
