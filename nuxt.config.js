@@ -32,7 +32,10 @@ export default {
 	/*
   ** Nuxt.js modules
   */
-	modules: [],
+	modules: [ '@nuxtjs/axios' ],
+	axios: {
+		baseURL: process.env.BASE_URL || 'https://l4us-8a0d4.firebaseio.com'
+	},
 	/*
   ** Build configuration
   */
@@ -43,13 +46,17 @@ export default {
 		extend(config, ctx) {}
 	},
 	env: {
-		baseUrl: process.env.BASE_URL || 'https://l4us-8a0d4.firebaseio.com'
+		baseUrl: process.env.BASE_URL || 'https://l4us-8a0d4.firebaseio.com',
+		fbAPIKey: 'AIzaSyAnfqjxZqg9T3EM-0_oCVRWNJMWZt_oCQ4'
 	},
 	router: {
 		linkActiveClass: 'active'
 	},
-	transition: {
+	pageTransition: {
 		name: 'fade',
 		mode: 'out-in'
+	},
+	router: {
+		middleware: 'log'
 	}
 };
