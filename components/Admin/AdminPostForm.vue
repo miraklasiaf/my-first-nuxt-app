@@ -11,14 +11,7 @@
 </template>
 
 <script>
-import AppInputControl from "@/components/UI/AppInputControl";
-import AppButton from "@/components/UI/AppButton";
-
 export default {
-  components: {
-    AppInputControl,
-    AppButton
-  },
   props: {
     post: {
       type: Object,

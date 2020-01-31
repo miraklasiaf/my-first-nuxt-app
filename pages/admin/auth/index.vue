@@ -17,16 +17,9 @@
 </template>
 
 <script>
-import AppInputControl from "@/components/UI/AppInputControl";
-import AppButton from "@/components/UI/AppButton";
-
 export default {
   name: "AdminAuthPage",
   layout: "admin",
-  components: {
-    AppInputControl,
-    AppButton
-  },
   data() {
     return {
       isLogin: true
