@@ -1,6 +1,4 @@
 export default function(context) {
 	console.log('authCheck');
-	if (process.client) {
-		context.store.dispatch('initAuth');
-	}
+	context.store.dispatch('initAuth', context.req);
 }

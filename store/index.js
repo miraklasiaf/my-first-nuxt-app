@@ -1,5 +1,4 @@
 import Vuex from 'vuex';
-import axios from 'axios';
 import Cookie from 'js-cookie';
 
 const createStore = () => {
@@ -22,18 +21,18 @@ const createStore = () => {
 			setToken(state, token) {
 				state.token = token;
 			},
-			clearToken(token) {
+			clearToken(state) {
 				state.token = null;
 			}
 		},
 		actions: {
 			nuxtServerInit(vuexContext, context) {
-				return axios
-					.get(process.env.baseUrl + '/posts.json')
-					.then((res) => {
+				return context.app.$axios
+					.$get('/posts.json')
+					.then((data) => {
 						const postsArray = [];
-						for (const key in res.data) {
-							postsArray.push({ ...res.data[key], id: key });
+						for (const key in data) {
+							postsArray.push({ ...data[key], id: key });
 						}
 						vuexContext.commit('setPosts', postsArray);
 					})
@@ -44,16 +43,16 @@ const createStore = () => {
 					...post,
 					updatedDate: new Date()
 				};
-				return axios
-					.post(process.env.baseUrl + '/posts.json?auth=' + vuexContext.state.token, createdPost)
-					.then((res) => {
-						vuexContext.commit('addPost', { ...createdPost, id: res.data.name });
+				return this.$axios
+					.$post(process.env.baseUrl + '/posts.json?auth=' + vuexContext.state.token, createdPost)
+					.then((data) => {
+						vuexContext.commit('addPost', { ...createdPost, id: data.name });
 					})
 					.catch((e) => console.log(e));
 			},
 			editPost(vuexContext, editedPost) {
-				return axios
-					.put(
+				return this.$axios
+					.$put(
 						process.env.baseUrl + '/posts/' + editedPost.id + '.json?auth=' + vuexContext.state.token,
 						editedPost
 					)
@@ -68,35 +67,30 @@ const createStore = () => {
 			authenticateUser(vuexContext, authData) {
 				let authUrl =
 					'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + process.env.fbAPIKey;
-
 				if (!authData.isLogin) {
 					authUrl = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + process.env.fbAPIKey;
 				}
-				return axios
-					.post(authUrl, {
+				return this.$axios
+					.$post(authUrl, {
 						email: authData.email,
 						password: authData.password,
 						returnSecureToken: true
 					})
-					.then((res) => {
-						vuexContext.commit('setToken', res.data.idToken);
-						localStorage.setItem('token', res.data.idToken);
-						localStorage.setItem('tokenExpiration', new Date().getTime() + res.expiresIn * 1000);
-						Cookie.set('jwt', token);
-						Cooket.set('expirationDate', new Date().getTime() + res.expiresIn * 1000);
-
-						vuexContext.dispatch('setLogoutTimer', res.expiresIn * 1000);
+					.then((result) => {
+						vuexContext.commit('setToken', result.idToken);
+						localStorage.setItem('token', result.idToken);
+						localStorage.setItem(
+							'tokenExpiration',
+							new Date().getTime() + Number.parseInt(result.expiresIn) * 1000
+						);
+						Cookie.set('jwt', result.idToken);
+						Cookie.set('expirationDate', new Date().getTime() + Number.parseInt(result.expiresIn) * 1000);
 					})
-					.catch((err) => {
-						console.log(err);
-					});
-			},
-			setLogoutTimer(vuexContext, duration) {
-				setTimeout(() => {
-					vuexContext.commit('clearToken');
-				}, duration);
+					.catch((e) => console.log(e));
 			},
 			initAuth(vuexContext, req) {
+				let token;
+				let expirationDate;
 				if (req) {
 					if (!req.headers.cookie) {
 						return;
@@ -105,16 +99,30 @@ const createStore = () => {
 					if (!jwtCookie) {
 						return;
 					}
-					const token = jwtCookie.split('=')[1];
+					token = jwtCookie.split('=')[1];
+					expirationDate = req.headers.cookie
+						.split(';')
+						.find((c) => c.trim().startsWith('expirationDate='))
+						.split('=')[1];
 				} else {
-					const token = localStorage.getItem('token');
-					const expirationDate = localStorage.getItem('tokenExpiration');
-					if (new Date().getTime() > +expirationDate || !token) {
-						return;
-					}
+					token = localStorage.getItem('token');
+					expirationDate = localStorage.getItem('tokenExpiration');
 				}
-				vuexContext.commit('setLogoutTimer', +expirationDate - new Date().getTime());
+				if (new Date().getTime() > +expirationDate || !token) {
+					console.log('No token or invalid token');
+					vuexContext.dispatch('logout');
+					return;
+				}
 				vuexContext.commit('setToken', token);
+			},
+			logout(vuexContext) {
+				vuexContext.commit('clearToken');
+				Cookie.remove('jwt');
+				Cookie.remove('expirationDate');
+				if (process.client) {
+					localStorage.removeItem('token');
+					localStorage.removeItem('tokenExpiration');
+				}
 			}
 		},
 		getters: {

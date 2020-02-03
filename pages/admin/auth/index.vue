@@ -17,15 +17,14 @@
 </template>
 
 <script>
-import axios from "axios";
 export default {
   name: "AdminAuthPage",
   layout: "admin",
   data() {
     return {
+      isLogin: true,
       email: "",
-      password: "",
-      isLogin: true
+      password: ""
     };
   },
   methods: {
@@ -59,4 +58,3 @@ export default {
   box-sizing: border-box;
 }
 </style>
-
